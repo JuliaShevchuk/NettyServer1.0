@@ -8,7 +8,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.util.CharsetUtil;
-import status.StatisticCounter;
+import status.StatisticCollector;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
@@ -20,10 +20,10 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
  */
 
 public class CommandHello extends Command {
-
+    //private static Timer timer = new HashedWheelTimer();
 
     @Override
-    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
+    public void execute( ChannelHandlerContext ctx,  Object msg, StatisticCollector statisticCollector) {
         checkStatus(ctx, msg, statisticCollector);
 
         if (msg instanceof HttpRequest) {
@@ -45,11 +45,11 @@ public class CommandHello extends Command {
             } else {
                 response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
                 ctx.write(response);
             }

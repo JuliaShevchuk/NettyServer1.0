@@ -7,7 +7,6 @@ import java.util.ResourceBundle;
 
 public class Config {
 
-
     private static Config instance;
     private ResourceBundle resource;
     private static final String FILENAME = "config.cf";
@@ -15,8 +14,6 @@ public class Config {
     public static final String REDIRECT = "REDIRECT";
     public static final String STATUS = "STATUS";
     public static final String MISSING = "MISSING";
-    public static final String DEFAULT = "DEFAULT";
-
 
     private Config() {
 
@@ -37,8 +34,7 @@ public class Config {
         while (keys.hasMoreElements()) {
             String key = keys.nextElement();
 
-            if (resource.getObject(key).toString().equals(page)
-                    && !resource.getObject(DEFAULT).toString().equals(page)) {
+            if (resource.getObject(key).toString().equals(page)) {
                 return key;
             } else if (page.contains(resource.getObject(REDIRECT).toString())) {
                 return REDIRECT;

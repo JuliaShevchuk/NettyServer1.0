@@ -6,7 +6,7 @@ import config.Config;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpRequest;
-import status.StatisticCounter;
+import status.StatisticCollector;
 
 /**
  * Created by yuliya.shevchuk on 03.08.2015.
@@ -16,10 +16,10 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
 
     private Command command;
-    private StatisticCounter statisticCollector;
+    private StatisticCollector statisticCollector;
 
-    public ServerHandler(StatisticCounter statisticCollector) {
-        this.statisticCollector = statisticCollector;
+    public ServerHandler() {
+        statisticCollector = new StatisticCollector();
     }
 
     @Override
@@ -38,7 +38,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             command.execute(ctx, req, statisticCollector);
         }
     }
-
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {

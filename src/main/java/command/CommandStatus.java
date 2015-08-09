@@ -10,12 +10,13 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.util.CharsetUtil;
 import status.IpCounter;
 import status.Request;
-import status.StatisticCounter;
+import status.StatisticCollector;
 
-import java.util.Formatter;
 import java.util.Map;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.*;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -26,8 +27,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class CommandStatus extends Command {
 
     @Override
-    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
-
+    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCollector statisticCollector) {
 
         checkStatus(ctx, msg, statisticCollector);
 
@@ -56,33 +56,31 @@ public class CommandStatus extends Command {
 
     }
 
-    private String createOutput(StatisticCounter statisticCollector) {
+    private String createOutput(StatisticCollector statisticCollector) {
         StringBuffer stringBuf = new StringBuffer();
-        stringBuf.append("\n\n" + new Formatter().format("%60s%n", "STATUS PAGE\n"));
         stringBuf.append("Total amount of requests: " + statisticCollector.getQuantityRequest());
-        stringBuf.append("\nUnique requests: " + statisticCollector.getUniqueIpSet().size());
-        stringBuf.append("\nActive connection: " + statisticCollector.getActiveConnection() + "\n\n\n");
+        stringBuf.append("\nUnique requests: " + statisticCollector.getUniqueIp());
+        stringBuf.append("\nActive requests: " + statisticCollector.getActiveRequest() + "\n\n\n");
 
-        stringBuf.append(new Formatter().format("%60s%n%-18s%-15s%-25s%n", "IP STATISTIC", "IP", "Requests", "Time"));
-
+        stringBuf.append("IP  Requests  Time");
         for (Map.Entry<String, IpCounter> entry : statisticCollector.getIpMap().entrySet()) {
-            stringBuf.append(new Formatter().format("%-18s%-2s%n", entry.getKey(), entry.getValue().toString()));
+            stringBuf.append(entry.getKey() + " " + entry.getValue().toString() + "\n");
         }
 
-        stringBuf.append("\n" + new Formatter().format("%60s%n%-17s%-25s%n", "REDIRECTS\n", "URI", "Redirects").toString());
-
+        stringBuf.append("\n\n\nURI  Redirects\n");
         for (Map.Entry<String, Integer> entry : statisticCollector.getUrlMap().entrySet()) {
-            stringBuf.append(new Formatter().format("%-17s%-2s%n", entry.getKey(), entry.getValue()));
+
+            stringBuf.append(entry.getKey() + " " + entry.getValue() + "\n");
         }
 
-
-        stringBuf.append("\n\n\n" +
-                new Formatter().format("%60s%n%-18s%-18s%-25s%-20s%-20s%-20s%n",
-                        "LAST CONNECTIONS\n", "IP", "URI", "TIMESTAMP", "SENT_BYTES", "RECEIVED_BYTES", "SPEED"));
+        stringBuf.append("\n\n\nIP  URI   TIMESTAMP   SENT_BYTES  RECEIVED_BYTES  SPEED\n");
 
         for (Request val : statisticCollector.getStatusList()) {
-            stringBuf.append(val.toString());
+
+            stringBuf.append(val.toString() + "\n");
         }
+
+
         return stringBuf.toString();
     }
 }
