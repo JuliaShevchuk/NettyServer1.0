@@ -8,7 +8,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.util.CharsetUtil;
-import status.StatisticCollector;
+import status.StatisticCounter;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
@@ -24,7 +24,7 @@ public class CommandMissing extends Command {
 
 
     @Override
-    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCollector statisticCollector) {
+    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
 
         checkStatus(ctx, msg, statisticCollector);
 

@@ -9,12 +9,12 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
-import status.StatisticCollector;
 
 /**
  * Created by yuliya.shevchuk on 03.08.2015.
  */
 public class HttpServer {
+
 
    private static final boolean SSL = System.getProperty("ssl") != null;
    private static final int PORT = Integer.parseInt(System.getProperty("port", SSL ? "8443" : "8083"));
@@ -41,7 +41,7 @@ public class HttpServer {
             b.option(ChannelOption.SO_BACKLOG, 1024);
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
-                    .childHandler(new ServerInitializer(sslCtx, new StatisticCollector()));
+                    .childHandler(new ServerInitializer(sslCtx));
             Channel ch = b.bind(PORT).sync().channel();
             ch.closeFuture().sync();
         } finally {

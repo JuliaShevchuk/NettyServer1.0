@@ -21,7 +21,7 @@ public class CommandHelper {
 
     public Command getCommand(String key) {
         command = commands.get(key);
-        System.out.println(command);
+
         if (command == null) {
             command = new CommandMissing();
         }
