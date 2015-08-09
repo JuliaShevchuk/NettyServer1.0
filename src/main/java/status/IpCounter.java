@@ -2,7 +2,6 @@ package status;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Formatter;
 
 /**
  * Created by yuliya.shevchuk on 07.08.2015.
@@ -28,27 +27,9 @@ public class IpCounter {
         this.date = date;
     }
 
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof IpCounter)) return false;
-
-        IpCounter ipCounter = (IpCounter) o;
-
-        return quantity == ipCounter.quantity && date.equals(ipCounter.date);
-    }
-
-    @Override
-    public int hashCode() {
-        return 31 * (int) quantity + date.hashCode();
-
-    }
-
     @Override
     public String toString() {
-        return new Formatter().format("%-15d%-25s%n", quantity,
-                new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(date)).toString();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+        return  quantity + "  " + simpleDateFormat.format(date) ;
     }
-
 }
