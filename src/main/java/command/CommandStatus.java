@@ -22,16 +22,15 @@ public class CommandStatus extends Command {
     @Override
     public void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
 
-        checkStatus(ctx, msg, statisticCollector);
-
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.unreleasableBuffer(Unpooled.copiedBuffer(
                 createOutput(statisticCollector), CharsetUtil.UTF_8)));
 
         response.headers().set(CONTENT_TYPE, "text/plain");
         response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
 
-        sendRequest(ctx, msg, response, false);
+        sendResponse(ctx, msg, response);
 
+        checkStatus(ctx, msg, statisticCollector);
     }
 
     private String createOutput(StatisticCounter statisticCollector) {
@@ -54,8 +53,7 @@ public class CommandStatus extends Command {
         }
 
 
-        stringBuf.append("\n\n\n" +
-                new Formatter().format("%60s%n%-18s%-18s%-25s%-20s%-20s%-20s%n",
+        stringBuf.append("\n\n\n" + new Formatter().format("%60s%n%-18s%-18s%-25s%-20s%-20s%-20s%n",
                         "LAST CONNECTIONS\n", "IP", "URI", "TIMESTAMP", "SENT_BYTES", "RECEIVED_BYTES", "SPEED"));
 
         for (Request val : statisticCollector.getStatusList()) {

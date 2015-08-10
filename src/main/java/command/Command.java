@@ -7,9 +7,16 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timeout;
+import io.netty.util.Timer;
+import io.netty.util.TimerTask;
 import status.StatisticCounter;
+
 import java.net.InetSocketAddress;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
+
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -20,8 +27,8 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
  */
 public abstract class Command {
 
-
-    public static final String REDIRECT = "REDIRECT";
+    private Timer timer = new HashedWheelTimer();
+    private static final String REDIRECT = "REDIRECT";
     private static final String DEFAULT = "DEFAULT";
     private static final String FILENAME = "config.cf";
 
@@ -52,7 +59,7 @@ public abstract class Command {
         }
     }
 
-    public void sendRequest(ChannelHandlerContext ctx, Object msg, FullHttpResponse response, boolean timeout) {
+    public void sendResponse(ChannelHandlerContext ctx, Object msg, FullHttpResponse response) {
 
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
@@ -66,19 +73,11 @@ public abstract class Command {
                 ctx.write(response).addListener(ChannelFutureListener.CLOSE);
             } else {
                 response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-
-                if (timeout) {
-                    try {
-                        Thread.sleep(10000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
                 ctx.write(response);
             }
-
         }
 
     }
 
 }
+
