@@ -1,13 +1,16 @@
 package command;
 
+
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
-import status.StatisticCollector;
-
+import status.StatisticCounter;
 import java.net.InetSocketAddress;
-
+import java.util.ResourceBundle;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
@@ -17,11 +20,39 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
  */
 public abstract class Command {
 
-    protected  final String DEFAULT_URI = "/favicon.ico";
 
-    public  abstract void execute(ChannelHandlerContext ctx, Object msg, StatisticCollector statisticCollector);
+    public static final String REDIRECT = "REDIRECT";
+    private static final String DEFAULT = "DEFAULT";
+    private static final String FILENAME = "config.cf";
 
-    public void checkStatus(ChannelHandlerContext ctx, Object msg, StatisticCollector statisticCollector) {
+    private ResourceBundle resource = ResourceBundle.getBundle(FILENAME);
+
+    public abstract void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector);
+
+    public void checkStatus(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
+
+        if (msg instanceof HttpRequest) {
+            HttpRequest req = (HttpRequest) msg;
+
+            String uri = req.getUri();
+            String ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().toString();
+
+            if (!uri.equals(resource.getObject(DEFAULT))) {
+
+                statisticCollector.updateUrlMap(uri);
+
+                if (!uri.contains(resource.getObject(REDIRECT).toString())) {
+                    statisticCollector.setQuantityRequest(statisticCollector.getQuantityRequest() + 1);
+                    statisticCollector.updateStatusList(ip, uri);
+                    statisticCollector.updateIpMap(ip);
+                    statisticCollector.updateUniqueIpSet(ip);
+
+                }
+            }
+        }
+    }
+
+    public void sendRequest(ChannelHandlerContext ctx, Object msg, FullHttpResponse response, boolean timeout) {
 
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
@@ -29,17 +60,25 @@ public abstract class Command {
                 ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
             }
 
-            String uri = req.getUri();
-            String ip = ((InetSocketAddress)ctx.channel().remoteAddress()).getAddress().toString();
+            boolean keepAlive = HttpHeaders.isKeepAlive(req);
 
-            if(!req.getUri().equals(DEFAULT_URI)){
-                statisticCollector.setQuantityRequest(statisticCollector.getQuantityRequest()+1);
-                statisticCollector.updateStatusList(ip, uri);
-                statisticCollector.updateIpMap(ip);
+            if (!keepAlive) {
+                ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+            } else {
+                response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 
+                if (timeout) {
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                ctx.write(response);
             }
 
         }
+
     }
 
 }

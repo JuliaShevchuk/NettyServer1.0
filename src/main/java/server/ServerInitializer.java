@@ -1,25 +1,25 @@
 package server;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslContext;
-import status.StatisticCollector;
+import status.StatisticCounter;
 
 /**
  * Created by yuliya.shevchuk on 03.08.2015.
  */
+
+
 public class ServerInitializer extends ChannelInitializer<SocketChannel> {
 
     private SslContext sslCtx;
-    private StatisticCollector statisticCollector;
+    private StatisticCounter statisticCollector;
 
-    public ServerInitializer(SslContext sslCtx, StatisticCollector statisticCollector) {
+    public ServerInitializer(SslContext sslCtx) {
         this.sslCtx = sslCtx;
-        this.statisticCollector = statisticCollector;
+        statisticCollector = new StatisticCounter();
     }
 
 
@@ -30,22 +30,11 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
             p.addLast(sslCtx.newHandler(ch.alloc()));
         }
 
-        p.addLast(new HttpServerCodec());
-        p.addLast(new ServerHandler());
-        p.addLast(new ChannelInboundHandlerAdapter() {
 
+        p.addLast("traffic-counter", statisticCollector);
+        p.addLast("serverCodec", new HttpServerCodec());
+        p.addLast("serverHandler",new ServerHandler(statisticCollector));
 
-            @Override
-            public void channelActive(final ChannelHandlerContext ctx) {
-                statisticCollector.setActiveRequest(statisticCollector.getActiveRequest() + 1);
-            }
-
-            @Override
-            public void channelInactive(final ChannelHandlerContext ctx) {
-                statisticCollector.setActiveRequest(statisticCollector.getActiveRequest() - 1);
-            }
-
-        });
 
     }
 }

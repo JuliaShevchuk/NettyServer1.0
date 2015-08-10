@@ -2,6 +2,7 @@ package status;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Formatter;
 
 /**
  * Created by yuliya.shevchuk on 07.08.2015.
@@ -14,7 +15,6 @@ public class Request {
     private long sentBytes;
     private long receivedBytes;
     private long speed;
-
 
 
     public synchronized String getIp() {
@@ -66,15 +66,35 @@ public class Request {
     }
 
     @Override
-    public synchronized String toString() {
-       SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Request)) return false;
 
-        return ip + "  " +
-                url + "  " +
-                simpleDateFormat.format(timestamp) + "  " +
-                sentBytes + "   " +
-                receivedBytes + "  " +
-                speed;
+        Request request = (Request) o;
+
+        return receivedBytes == request.receivedBytes
+                && sentBytes == request.sentBytes
+                && speed == request.speed
+                && ip.equals(request.ip)
+                && timestamp.equals(request.timestamp)
+                && url.equals(request.url);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return 17 * ip.hashCode()
+                + 31 * url.hashCode()
+                + 63 * timestamp.hashCode()
+                + (int) (sentBytes + receivedBytes + speed);
+    }
+
+    @Override
+    public synchronized String toString() {
+
+        return new Formatter().format("%-18s%-18s%-25s%-20d%-20d%-20d%n", ip, url,
+                new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(timestamp),
+                sentBytes, receivedBytes, speed).toString();
 
     }
 }
