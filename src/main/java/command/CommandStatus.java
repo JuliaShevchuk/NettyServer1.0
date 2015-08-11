@@ -28,9 +28,8 @@ public class CommandStatus extends Command {
         response.headers().set(CONTENT_TYPE, "text/plain");
         response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
 
-        sendResponse(ctx, msg, response);
+        sendResponse(ctx, msg, response,statisticCollector);
 
-        checkStatus(ctx, msg, statisticCollector);
     }
 
     private String createOutput(StatisticCounter statisticCollector) {
@@ -38,7 +37,7 @@ public class CommandStatus extends Command {
         stringBuf.append("\n\n" + new Formatter().format("%60s%n", "STATUS PAGE\n"));
         stringBuf.append("Total amount of requests: " + statisticCollector.getQuantityRequest());
         stringBuf.append("\nUnique requests: " + statisticCollector.getUniqueIpSet().size());
-        stringBuf.append("\nActive connection: " + statisticCollector.getActiveConnection() + "\n\n\n");
+        stringBuf.append("\nActive connection: " + statisticCollector.getActiveConnections() + "\n\n\n");
 
         stringBuf.append(new Formatter().format("%60s%n%-18s%-15s%-25s%n", "IP STATISTIC", "IP", "Requests", "Time"));
 

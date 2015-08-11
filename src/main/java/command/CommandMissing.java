@@ -27,8 +27,7 @@ public class CommandMissing extends Command {
         response.headers().set(CONTENT_TYPE, "text/plain");
         response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
 
-        sendResponse(ctx, msg, response);
+        sendResponse(ctx, msg, response,statisticCollector);
 
-        checkStatus(ctx, msg, statisticCollector);
     }
 }

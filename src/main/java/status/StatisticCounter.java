@@ -1,20 +1,18 @@
 package status;
 
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 import io.netty.handler.traffic.TrafficCounter;
-import io.netty.util.collection.IntObjectHashMap;
-import io.netty.util.collection.IntObjectMap;
 
 import java.util.*;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
  * Created by yuliya.shevchuk on 05.08.2015.
  */
 
 @ChannelHandler.Sharable
-public class StatisticCounter extends ChannelTrafficShapingHandler {
+public class StatisticCounter {
 
     public static final String FILENAME = "config.cf";
     public static final String REDIRECT = "REDIRECT";
@@ -24,19 +22,16 @@ public class StatisticCounter extends ChannelTrafficShapingHandler {
     private final ResourceBundle resource;
     private List<Request> statusList;
     private Set<String> uniqueIpSet;
-    private IntObjectMap activeConnections;
-    private final TrafficCounter counter;
+    private long activeConnections;
 
 
     public StatisticCounter() {
-        super(1000, 1000);
+
         urlMap = new TreeMap<String, Integer>();
-        ipMap = new HashMap<String, IpCounter>();//ToDo:hashCode
+        ipMap = new HashMap<String, IpCounter>();
         uniqueIpSet = new HashSet<>();
         statusList = new ArrayList<>(16);
         resource = ResourceBundle.getBundle(FILENAME);
-        counter = new TrafficCounter(new ScheduledThreadPoolExecutor(4), "ThreadPoolExecutor", 1000);
-        activeConnections = new IntObjectHashMap();
 
     }
 
@@ -70,7 +65,11 @@ public class StatisticCounter extends ChannelTrafficShapingHandler {
 
     }
 
-    public synchronized void updateStatusList(String ip, String url) {
+    public synchronized void updateStatusList(ChannelHandlerContext ctx, String ip, String url) {
+
+        ChannelHandler trafficHandler = ctx.pipeline().get("trafficCounter");
+        ChannelTrafficShapingHandler channelTrafficShapingHandler = (ChannelTrafficShapingHandler) trafficHandler;
+        TrafficCounter counter = channelTrafficShapingHandler.trafficCounter();
 
         if (statusList.size() == 16) {
             statusList.remove(1);
@@ -82,14 +81,11 @@ public class StatisticCounter extends ChannelTrafficShapingHandler {
 
         status.setSentBytes(counter.cumulativeWrittenBytes());
         status.setReceivedBytes(counter.cumulativeReadBytes());
-        status.setSpeed((counter.lastReadThroughput()>>10));
+        status.setSpeed((counter.lastReadThroughput()));
         statusList.add(status);
 
     }
 
-    public synchronized int getActiveConnection() {
-        return activeConnections.size();
-    }
 
     public synchronized int getQuantityRequest() {
         return quantityRequest;
@@ -131,7 +127,11 @@ public class StatisticCounter extends ChannelTrafficShapingHandler {
         this.uniqueIpSet = uniqueIpSet;
     }
 
-    public TrafficCounter getCounter() {
-        return counter;
+    public long getActiveConnections() {
+        return activeConnections;
+    }
+
+    public void setActiveConnections(long activeConnections) {
+        this.activeConnections = activeConnections;
     }
 }

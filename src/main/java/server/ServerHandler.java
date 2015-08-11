@@ -46,4 +46,14 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         ctx.close();
     }
 
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        statisticCollector.setActiveConnections(statisticCollector.getActiveConnections() + 1);
+
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        statisticCollector.setActiveConnections(statisticCollector.getActiveConnections() + 1);
+    }
 }

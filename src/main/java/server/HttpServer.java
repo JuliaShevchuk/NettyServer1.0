@@ -32,7 +32,6 @@ public class HttpServer {
         }
 
 
-
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 

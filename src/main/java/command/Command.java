@@ -3,19 +3,13 @@ package command;
 
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.*;
 import io.netty.util.HashedWheelTimer;
-import io.netty.util.Timeout;
 import io.netty.util.Timer;
-import io.netty.util.TimerTask;
 import status.StatisticCounter;
 
 import java.net.InetSocketAddress;
 import java.util.ResourceBundle;
-import java.util.concurrent.TimeUnit;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
@@ -36,7 +30,7 @@ public abstract class Command {
 
     public abstract void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector);
 
-    public void checkStatus(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
+    private void checkStatus(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
 
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
@@ -50,7 +44,7 @@ public abstract class Command {
 
                 if (!uri.contains(resource.getObject(REDIRECT).toString())) {
                     statisticCollector.setQuantityRequest(statisticCollector.getQuantityRequest() + 1);
-                    statisticCollector.updateStatusList(ip, uri);
+                    statisticCollector.updateStatusList(ctx, ip, uri);
                     statisticCollector.updateIpMap(ip);
                     statisticCollector.updateUniqueIpSet(ip);
 
@@ -59,7 +53,9 @@ public abstract class Command {
         }
     }
 
-    public void sendResponse(ChannelHandlerContext ctx, Object msg, FullHttpResponse response) {
+    public void sendResponse(ChannelHandlerContext ctx, Object msg, FullHttpResponse response, StatisticCounter statisticCollector) {
+
+        checkStatus(ctx, msg, statisticCollector);
 
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
@@ -74,6 +70,7 @@ public abstract class Command {
             } else {
                 response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
                 ctx.write(response);
+                ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
             }
         }
 

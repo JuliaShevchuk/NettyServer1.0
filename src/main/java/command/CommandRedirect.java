@@ -1,6 +1,7 @@
 package command;
 
 
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import status.StatisticCounter;
@@ -14,20 +15,19 @@ public class CommandRedirect extends Command {
 
 
     @Override
-    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
+    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
+
 
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
-            String uri = req.getUri();
 
-            String url = uri.substring(14);
+            String url = req.getUri().substring(15);
 
-            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
+            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.FOUND);
             response.headers().set(HttpHeaders.Names.LOCATION, url);
 
-            sendResponse(ctx, msg, response);
-
+            sendResponse(ctx, msg, response, statisticCounter);
         }
-        checkStatus(ctx, msg, statisticCollector);
+
     }
 }
