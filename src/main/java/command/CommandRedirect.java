@@ -15,7 +15,7 @@ public class CommandRedirect extends Command {
 
 
     @Override
-    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
+    public synchronized void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
 
 
         if (msg instanceof HttpRequest) {

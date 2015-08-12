@@ -18,11 +18,11 @@ import status.StatisticCounter;
 public class ServerInitializer extends ChannelInitializer<SocketChannel> {
 
     private SslContext sslCtx;
-   private StatisticCounter statisticCounter;
+    private StatisticCounter statisticCounter;
 
     public ServerInitializer(SslContext sslCtx) {
         this.sslCtx = sslCtx;
-       statisticCounter = new StatisticCounter();
+        statisticCounter = new StatisticCounter();
     }
 
 
@@ -34,10 +34,10 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
         }
 
 
-        p.addLast("trafficCounter",  new ChannelTrafficShapingHandler(
+        p.addLast("trafficCounter", new ChannelTrafficShapingHandler(
                 AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL));
         p.addLast("serverCodec", new HttpServerCodec());
-        p.addLast("serverHandler",new ServerHandler(statisticCounter));
+        p.addLast("serverHandler", new ServerHandler(statisticCounter));
 
     }
 }

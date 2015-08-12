@@ -19,7 +19,7 @@ public class CommandHelper {
 
     }
 
-    public Command getCommand(String key) {
+    public synchronized Command getCommand(String key) {
         command = commands.get(key);
 
         if (command == null) {
@@ -30,7 +30,7 @@ public class CommandHelper {
 
     }
 
-    public static CommandHelper getInstance() {
+    public synchronized static CommandHelper getInstance() {
         if (instance == null) {
             instance = new CommandHelper();
         }

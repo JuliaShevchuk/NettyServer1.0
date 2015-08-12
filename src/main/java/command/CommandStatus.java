@@ -20,7 +20,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class CommandStatus extends Command {
 
     @Override
-    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
+    public synchronized void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
 
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.unreleasableBuffer(Unpooled.copiedBuffer(
                 createOutput(statisticCollector), CharsetUtil.UTF_8)));
@@ -32,7 +32,7 @@ public class CommandStatus extends Command {
 
     }
 
-    private String createOutput(StatisticCounter statisticCollector) {
+    private synchronized String createOutput(StatisticCounter statisticCollector) {
         StringBuffer stringBuf = new StringBuffer();
         stringBuf.append("\n\n" + new Formatter().format("%60s%n", "STATUS PAGE\n"));
         stringBuf.append("Total amount of requests: " + statisticCollector.getQuantityRequest());

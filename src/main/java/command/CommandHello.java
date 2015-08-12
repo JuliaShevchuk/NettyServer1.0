@@ -25,7 +25,7 @@ public class CommandHello extends Command {
     public static final String MESSAGE = "Hello World!";
 
     @Override
-    public void execute(final ChannelHandlerContext ctx, final Object msg, final StatisticCounter statisticCollector) {
+    public synchronized void execute(final ChannelHandlerContext ctx, final Object msg, final StatisticCounter statisticCollector) {
 
         ctx.executor().schedule(new Runnable() {
             @Override

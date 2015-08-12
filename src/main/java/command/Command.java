@@ -30,7 +30,7 @@ public abstract class Command {
 
     public abstract void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector);
 
-    private void checkStatus(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
+    private synchronized void checkStatus(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
 
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
@@ -53,7 +53,7 @@ public abstract class Command {
         }
     }
 
-    public void sendResponse(ChannelHandlerContext ctx, Object msg, FullHttpResponse response, StatisticCounter statisticCollector) {
+    protected synchronized void sendResponse(ChannelHandlerContext ctx, Object msg, FullHttpResponse response, StatisticCounter statisticCollector) {
 
         checkStatus(ctx, msg, statisticCollector);
 

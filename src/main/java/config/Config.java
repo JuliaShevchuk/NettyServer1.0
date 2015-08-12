@@ -22,7 +22,7 @@ public class Config {
 
     }
 
-    public static Config getInstance() {
+    public synchronized static Config getInstance() {
 
         if (instance == null) {
             instance = new Config();
@@ -31,7 +31,7 @@ public class Config {
         return instance;
     }
 
-    public String getProperty(String page) {
+    public synchronized String getProperty(String page) {
 
         Enumeration<String> keys = resource.getKeys();
         while (keys.hasMoreElements()) {

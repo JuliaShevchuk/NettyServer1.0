@@ -30,7 +30,7 @@ public class IpCounter {
 
 
     @Override
-    public boolean equals(Object o) {
+    public synchronized boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof IpCounter)) return false;
 
@@ -40,13 +40,13 @@ public class IpCounter {
     }
 
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         return 31 * (int) quantity + date.hashCode();
 
     }
 
     @Override
-    public String toString() {
+    public synchronized String toString() {
         return new Formatter().format("%-15d%-25s%n", quantity,
                 new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(date)).toString();
     }

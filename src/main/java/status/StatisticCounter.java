@@ -127,11 +127,11 @@ public class StatisticCounter {
         this.uniqueIpSet = uniqueIpSet;
     }
 
-    public long getActiveConnections() {
+    public synchronized long getActiveConnections() {
         return activeConnections;
     }
 
-    public void setActiveConnections(long activeConnections) {
+    public synchronized void setActiveConnections(long activeConnections) {
         this.activeConnections = activeConnections;
     }
 }

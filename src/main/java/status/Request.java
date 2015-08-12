@@ -66,7 +66,7 @@ public class Request {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public synchronized boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Request)) return false;
 
@@ -82,7 +82,7 @@ public class Request {
     }
 
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         return 17 * ip.hashCode()
                 + 31 * url.hashCode()
                 + 63 * timestamp.hashCode()
