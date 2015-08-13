@@ -73,7 +73,7 @@ public class StatisticCounter {
         TrafficCounter counter = channelTrafficShapingHandler.trafficCounter();
 
         if (statusQueue.size() == 16) {
-            statusQueue.remove();
+            statusQueue.remove(1);
         }
         Request status = new Request();
         status.setIp(ip);
