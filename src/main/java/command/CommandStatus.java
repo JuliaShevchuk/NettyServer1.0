@@ -55,7 +55,7 @@ public class CommandStatus extends Command {
         stringBuf.append("\n\n\n" + new Formatter().format("%60s%n%-18s%-18s%-25s%-20s%-20s%-20s%n",
                         "LAST CONNECTIONS\n", "IP", "URI", "TIMESTAMP", "SENT_BYTES", "RECEIVED_BYTES", "SPEED"));
 
-        for (Request val : statisticCollector.getStatusList()) {
+        for (Request val : statisticCollector.getStatusQueue()) {
             stringBuf.append(val.toString());
         }
         return stringBuf.toString();

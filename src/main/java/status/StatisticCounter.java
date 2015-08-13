@@ -6,31 +6,32 @@ import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 import io.netty.handler.traffic.TrafficCounter;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Created by yuliya.shevchuk on 05.08.2015.
  */
 
-@ChannelHandler.Sharable
+
 public class StatisticCounter {
 
     public static final String FILENAME = "config.cf";
     public static final String REDIRECT = "REDIRECT";
     private int quantityRequest;
-    private Map<String, Integer> urlMap;
-    private Map<String, IpCounter> ipMap;
+    private ConcurrentMap<String, Integer> urlMap;
+    private ConcurrentMap<String, IpCounter> ipMap;
     private final ResourceBundle resource;
-    private List<Request> statusList;
+    private BlockingQueue<Request> statusQueue;
     private Set<String> uniqueIpSet;
     private long activeConnections;
 
 
     public StatisticCounter() {
 
-        urlMap = new TreeMap<String, Integer>();
-        ipMap = new HashMap<String, IpCounter>();
-        uniqueIpSet = new HashSet<>();
-        statusList = new ArrayList<>(16);
+        urlMap = new ConcurrentSkipListMap<String, Integer>();
+        ipMap = new ConcurrentHashMap<String, IpCounter>();
+        uniqueIpSet = new ConcurrentSkipListSet<>();
+        statusQueue = new ArrayBlockingQueue<>(16);
         resource = ResourceBundle.getBundle(FILENAME);
 
     }
@@ -71,8 +72,8 @@ public class StatisticCounter {
         ChannelTrafficShapingHandler channelTrafficShapingHandler = (ChannelTrafficShapingHandler) trafficHandler;
         TrafficCounter counter = channelTrafficShapingHandler.trafficCounter();
 
-        if (statusList.size() == 16) {
-            statusList.remove(1);
+        if (statusQueue.size() == 16) {
+            statusQueue.remove(1);
         }
         Request status = new Request();
         status.setIp(ip);
@@ -82,7 +83,7 @@ public class StatisticCounter {
         status.setSentBytes(counter.cumulativeWrittenBytes());
         status.setReceivedBytes(counter.cumulativeReadBytes());
         status.setSpeed((counter.lastReadThroughput()));
-        statusList.add(status);
+        statusQueue.add(status);
 
     }
 
@@ -95,31 +96,7 @@ public class StatisticCounter {
         this.quantityRequest = quantityRequest;
     }
 
-    public synchronized Map<String, Integer> getUrlMap() {
-        return urlMap;
-    }
-
-    public synchronized void setUrlMap(Map<String, Integer> urlMap) {
-        this.urlMap = urlMap;
-    }
-
-    public synchronized Map<String, IpCounter> getIpMap() {
-        return ipMap;
-    }
-
-    public synchronized void setIpMap(Map<String, IpCounter> ipMap) {
-        this.ipMap = ipMap;
-    }
-
-    public synchronized List<Request> getStatusList() {
-        return statusList;
-    }
-
-    public synchronized void setStatusList(List<Request> statusList) {
-        this.statusList = statusList;
-    }
-
-    public synchronized Set<String> getUniqueIpSet() {
+   public synchronized Set<String> getUniqueIpSet() {
         return uniqueIpSet;
     }
 
@@ -133,5 +110,29 @@ public class StatisticCounter {
 
     public synchronized void setActiveConnections(long activeConnections) {
         this.activeConnections = activeConnections;
+    }
+
+    public ConcurrentMap<String, Integer> getUrlMap() {
+        return urlMap;
+    }
+
+    public void setUrlMap(ConcurrentMap<String, Integer> urlMap) {
+        this.urlMap = urlMap;
+    }
+
+    public ConcurrentMap<String, IpCounter> getIpMap() {
+        return ipMap;
+    }
+
+    public void setIpMap(ConcurrentMap<String, IpCounter> ipMap) {
+        this.ipMap = ipMap;
+    }
+
+    public BlockingQueue<Request> getStatusQueue() {
+        return statusQueue;
+    }
+
+    public void setStatusQueue(BlockingQueue<Request> statusQueue) {
+        this.statusQueue = statusQueue;
     }
 }
