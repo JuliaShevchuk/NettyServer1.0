@@ -63,17 +63,14 @@ public class StatisticCounter {
 
     public synchronized void updateUniqueIpSet(String ip) {
         uniqueIpSet.add(ip);
-
     }
 
     public synchronized void updateStatusList(ChannelHandlerContext ctx, String ip, String url) {
-
         ChannelHandler trafficHandler = ctx.pipeline().get("trafficCounter");
         ChannelTrafficShapingHandler channelTrafficShapingHandler = (ChannelTrafficShapingHandler) trafficHandler;
         TrafficCounter counter = channelTrafficShapingHandler.trafficCounter();
-
         if (statusQueue.size() == 16) {
-            statusQueue.remove(1);
+            statusQueue.remove();
         }
         Request status = new Request();
         status.setIp(ip);
@@ -84,7 +81,6 @@ public class StatisticCounter {
         status.setReceivedBytes(counter.cumulativeReadBytes());
         status.setSpeed((counter.lastReadThroughput()));
         statusQueue.add(status);
-
     }
 
 
@@ -112,6 +108,13 @@ public class StatisticCounter {
         this.activeConnections = activeConnections;
     }
 
+    public BlockingQueue<Request> getStatusQueue() {
+        return statusQueue;
+    }
+
+    public void setStatusQueue(BlockingQueue<Request> statusQueue) {
+        this.statusQueue = statusQueue;
+    }
     public ConcurrentMap<String, Integer> getUrlMap() {
         return urlMap;
     }
@@ -128,11 +131,5 @@ public class StatisticCounter {
         this.ipMap = ipMap;
     }
 
-    public BlockingQueue<Request> getStatusQueue() {
-        return statusQueue;
-    }
 
-    public void setStatusQueue(BlockingQueue<Request> statusQueue) {
-        this.statusQueue = statusQueue;
-    }
 }
