@@ -4,8 +4,6 @@ package command;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
-import io.netty.util.HashedWheelTimer;
-import io.netty.util.Timer;
 import status.StatisticCounter;
 
 import java.net.InetSocketAddress;
@@ -21,16 +19,14 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
  */
 public abstract class Command {
 
-    private Timer timer = new HashedWheelTimer();
-    private static final String REDIRECT = "REDIRECT";
+
     private static final String DEFAULT = "DEFAULT";
     private static final String FILENAME = "config.cf";
 
-    private ResourceBundle resource = ResourceBundle.getBundle(FILENAME);
 
-    public abstract void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector);
+    public abstract void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter);
 
-    private synchronized void checkStatus(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCollector) {
+    protected synchronized void checkStatus(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
 
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
@@ -38,24 +34,21 @@ public abstract class Command {
             String uri = req.getUri();
             String ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().toString();
 
-            if (!uri.equals(resource.getObject(DEFAULT))) {
+            if (!uri.equals(ResourceBundle.getBundle(FILENAME)
+                    .getObject(DEFAULT))) {
 
-                statisticCollector.updateUrlMap(uri);
 
-                if (!uri.contains(resource.getObject(REDIRECT).toString())) {
-                    statisticCollector.setQuantityRequest(statisticCollector.getQuantityRequest() + 1);
-                    statisticCollector.updateStatusList(ctx, ip, uri);
-                    statisticCollector.updateIpMap(ip);
-                    statisticCollector.updateUniqueIpSet(ip);
+                statisticCounter.setQuantityRequest(statisticCounter.getQuantityRequest() + 1);
+                statisticCounter.updateStatusList(ctx, ip, uri);
+                statisticCounter.updateIpList(ip);
+                statisticCounter.updateUniqueIpSet(ip);
 
-                }
             }
         }
     }
 
-    protected synchronized void sendResponse(ChannelHandlerContext ctx, Object msg, FullHttpResponse response, StatisticCounter statisticCollector) {
-
-        checkStatus(ctx, msg, statisticCollector);
+    protected synchronized void sendResponse(ChannelHandlerContext ctx, Object msg, FullHttpResponse response,
+                                             StatisticCounter statisticCounter) {
 
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
@@ -70,7 +63,7 @@ public abstract class Command {
             } else {
                 response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
                 ctx.write(response);
-                ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+
             }
         }
 

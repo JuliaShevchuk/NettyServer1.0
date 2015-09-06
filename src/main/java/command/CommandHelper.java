@@ -1,17 +1,23 @@
 package command;
 
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Created by Julia on 26.05.2015.
  */
 public class CommandHelper {
-    private static CommandHelper instance = null;
-    private HashMap<String, Command> commands = new HashMap<String, Command>();
-    private Command command;
+
+
+    private volatile static CommandHelper instance;
+    private ConcurrentMap<String, Command> commands;
+    private volatile Command command;
 
     private CommandHelper() {
+
+        commands = new ConcurrentSkipListMap();
+
         commands.put("HELLO", new CommandHello());
         commands.put("REDIRECT", new CommandRedirect());
         commands.put("STATUS", new CommandStatus());
@@ -30,9 +36,13 @@ public class CommandHelper {
 
     }
 
-    public synchronized static CommandHelper getInstance() {
+    public static CommandHelper getInstance() {
         if (instance == null) {
-            instance = new CommandHelper();
+            synchronized (CommandHelper.class) {
+                if (instance == null) {
+                    instance = new CommandHelper();
+                }
+            }
         }
         return instance;
     }
