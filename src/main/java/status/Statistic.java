@@ -4,17 +4,22 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Formatter;
 
+
 /**
  * Created by yuliya.shevchuk on 07.08.2015.
  */
-public class Request {
+public class Statistic {
 
     private String ip;
-    private String url;
+    private String uri;
     private Date timestamp;
     private long sentBytes;
     private long receivedBytes;
     private long speed;
+
+
+    public Statistic() {
+    }
 
 
     public synchronized String getIp() {
@@ -26,11 +31,12 @@ public class Request {
     }
 
     public synchronized String getUrl() {
-        return url;
+        return uri;
     }
 
-    public synchronized void setUrl(String url) {
-        this.url = url;
+    public synchronized void setUrl(String uri) {
+
+        this.uri = uri;
     }
 
     public synchronized Date getTimestamp() {
@@ -68,23 +74,23 @@ public class Request {
     @Override
     public synchronized boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Request)) return false;
+        if (!(o instanceof Statistic)) return false;
 
-        Request request = (Request) o;
+        Statistic request = (Statistic) o;
 
         return receivedBytes == request.receivedBytes
                 && sentBytes == request.sentBytes
                 && speed == request.speed
                 && ip.equals(request.ip)
                 && timestamp.equals(request.timestamp)
-                && url.equals(request.url);
+                && uri.equals(request.uri);
 
     }
 
     @Override
     public synchronized int hashCode() {
         return 17 * ip.hashCode()
-                + 31 * url.hashCode()
+                + 31 * uri.hashCode()
                 + 63 * timestamp.hashCode()
                 + (int) (sentBytes + receivedBytes + speed);
     }
@@ -92,7 +98,7 @@ public class Request {
     @Override
     public synchronized String toString() {
 
-        return new Formatter().format("%-18s%-18s%-25s%-20d%-20d%-20d%n", ip, url,
+        return new Formatter().format("%-18s%-40s%-25s%-20d%-20d%-20d%n", ip, uri,
                 new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(timestamp),
                 sentBytes, receivedBytes, speed).toString();
 

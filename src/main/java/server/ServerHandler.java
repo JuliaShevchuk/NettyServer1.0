@@ -16,10 +16,10 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
 
     private Command command;
-    private StatisticCounter statisticCollector;
+    private StatisticCounter statisticCounter;
 
-    public ServerHandler(StatisticCounter statisticCollector) {
-        this.statisticCollector = statisticCollector;
+    public ServerHandler(StatisticCounter statisticCounter) {
+        this.statisticCounter = statisticCounter;
     }
 
     @Override
@@ -35,7 +35,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
             command = CommandHelper.getInstance().getCommand(Config.getInstance().getProperty(req.getUri()));
-            command.execute(ctx, req, statisticCollector);
+            command.execute(ctx, req, statisticCounter);
         }
     }
 
@@ -48,12 +48,12 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        statisticCollector.setActiveConnections(statisticCollector.getActiveConnections() + 1);
+        statisticCounter.setActiveConnections(statisticCounter.getActiveConnections() + 1);
 
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        statisticCollector.setActiveConnections(statisticCollector.getActiveConnections() + 1);
+        statisticCounter.setActiveConnections(statisticCounter.getActiveConnections() - 1);
     }
 }
