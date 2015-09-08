@@ -1,12 +1,16 @@
 package status;
 
-import io.netty.channel.ChannelHandler;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 import io.netty.handler.traffic.TrafficCounter;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+
 
 /**
  * Created by yuliya.shevchuk on 05.08.2015.
@@ -15,100 +19,104 @@ import java.util.concurrent.*;
 
 public class StatisticCounter {
 
-    public static final String FILENAME = "config.cf";
-    public static final String REDIRECT = "REDIRECT";
-    private int quantityRequest;
+
+    private AtomicLong quantityRequest;
+    private AtomicLong activeConnections;
+
+    private List<IpCounter> ipList;
     private ConcurrentMap<String, Integer> urlMap;
-    private ConcurrentMap<String, IpCounter> ipMap;
-    private final ResourceBundle resource;
-    private BlockingQueue<Request> statusQueue;
+    private BlockingQueue<Statistic> statusQueue;
     private Set<String> uniqueIpSet;
-    private long activeConnections;
+
+    public static final String TRAFFIC_COUNTER = "trafficCounter";
 
 
     public StatisticCounter() {
 
-        urlMap = new ConcurrentSkipListMap<String, Integer>();
-        ipMap = new ConcurrentHashMap<String, IpCounter>();
+        quantityRequest = new AtomicLong();
+        activeConnections = new AtomicLong();
+
+        urlMap = new ConcurrentSkipListMap();
+        ipList = new CopyOnWriteArrayList();
         uniqueIpSet = new ConcurrentSkipListSet<>();
         statusQueue = new ArrayBlockingQueue<>(16);
-        resource = ResourceBundle.getBundle(FILENAME);
+
 
     }
 
-    public synchronized void updateIpMap(String ip) {
-        IpCounter ipCounter = new IpCounter();
-        if (ipMap.get(ip) == null) {
-            ipCounter.setQuantity(1);
-        } else {
-            ipCounter = ipMap.get(ip);
-            ipCounter.setQuantity(ipCounter.getQuantity() + 1);
+    public synchronized void updateIpList(String ip) {
+
+        if (ipList.size() != 0) {
+
+            for (IpCounter ipCounter : ipList) {
+                if (ipCounter.getIp().equals(ip)) {
+                    ipCounter.setDate(new AtomicReference<>(new Date()));
+                    ipCounter.setQuantity(new AtomicLong(ipCounter.getQuantity().incrementAndGet()));
+                    return;
+                }
+            }
         }
-        ipCounter.setDate((new Date()));
-        ipMap.put(ip, ipCounter);
+        ipList.add(new IpCounter(ip, new AtomicLong(1), new AtomicReference<>(new Date())));
     }
 
     public synchronized void updateUrlMap(String uri) {
 
-        if (uri.contains(resource.getObject(REDIRECT).toString())) {
-            String url = uri.substring(14);
-            if (!urlMap.containsKey(url)) {
-                urlMap.put(url, 1);
-            } else {
-                urlMap.put(url, urlMap.get(url) + 1);
-            }
+        if (!urlMap.containsKey(uri)) {
+            urlMap.put(uri, 1);
+        } else {
+            urlMap.put(uri, urlMap.get(uri) + 1);
         }
 
     }
 
-    public synchronized void updateUniqueIpSet(String ip) {
+    public void updateUniqueIpSet(String ip) {
         uniqueIpSet.add(ip);
 
     }
 
     public synchronized void updateStatusList(ChannelHandlerContext ctx, String ip, String url) {
 
-        ChannelHandler trafficHandler = ctx.pipeline().get("trafficCounter");
-        ChannelTrafficShapingHandler channelTrafficShapingHandler = (ChannelTrafficShapingHandler) trafficHandler;
-        TrafficCounter counter = channelTrafficShapingHandler.trafficCounter();
+        TrafficCounter counter = ((ChannelTrafficShapingHandler) ctx.pipeline().get(TRAFFIC_COUNTER)).trafficCounter();
 
         if (statusQueue.size() == 16) {
-            statusQueue.remove(1);
+            statusQueue.remove();
         }
-        Request status = new Request();
+
+        Statistic status = new Statistic();
         status.setIp(ip);
         status.setUrl(url);
-        status.setTimestamp((new Date()));
+        status.setTimestamp(new AtomicReference<>(new Date()));
 
-        status.setSentBytes(counter.cumulativeWrittenBytes());
-        status.setReceivedBytes(counter.cumulativeReadBytes());
-        status.setSpeed((counter.lastReadThroughput()));
+        status.setSentBytes(new AtomicLong(counter.cumulativeWrittenBytes()));
+        status.setReceivedBytes(new AtomicLong(counter.cumulativeReadBytes()));
+        status.setSpeed(new AtomicLong(counter.lastReadThroughput()));
+
         statusQueue.add(status);
 
     }
 
 
-    public synchronized int getQuantityRequest() {
+    public AtomicLong getQuantityRequest() {
         return quantityRequest;
     }
 
-    public synchronized void setQuantityRequest(int quantityRequest) {
+    public void setQuantityRequest(AtomicLong quantityRequest) {
         this.quantityRequest = quantityRequest;
     }
 
-   public synchronized Set<String> getUniqueIpSet() {
+    public Set<String> getUniqueIpSet() {
         return uniqueIpSet;
     }
 
-    public synchronized void setUniqueIpSet(Set<String> uniqueIpSet) {
+    public void setUniqueIpSet(Set<String> uniqueIpSet) {
         this.uniqueIpSet = uniqueIpSet;
     }
 
-    public synchronized long getActiveConnections() {
+    public AtomicLong getActiveConnections() {
         return activeConnections;
     }
 
-    public synchronized void setActiveConnections(long activeConnections) {
+    public void setActiveConnections(AtomicLong activeConnections) {
         this.activeConnections = activeConnections;
     }
 
@@ -120,19 +128,19 @@ public class StatisticCounter {
         this.urlMap = urlMap;
     }
 
-    public ConcurrentMap<String, IpCounter> getIpMap() {
-        return ipMap;
+    public List<IpCounter> getIpList() {
+        return ipList;
     }
 
-    public void setIpMap(ConcurrentMap<String, IpCounter> ipMap) {
-        this.ipMap = ipMap;
+    public void setIpList(List<IpCounter> ipList) {
+        this.ipList = ipList;
     }
 
-    public BlockingQueue<Request> getStatusQueue() {
+    public BlockingQueue<Statistic> getStatusQueue() {
         return statusQueue;
     }
 
-    public void setStatusQueue(BlockingQueue<Request> statusQueue) {
+    public void setStatusQueue(BlockingQueue<Statistic> statusQueue) {
         this.statusQueue = statusQueue;
     }
 }

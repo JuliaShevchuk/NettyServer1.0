@@ -21,7 +21,7 @@ public class CommandMissing extends Command {
     public static final String MESSAGE = "Error!";
 
     @Override
-    public synchronized void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
+    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
 
 
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK,
