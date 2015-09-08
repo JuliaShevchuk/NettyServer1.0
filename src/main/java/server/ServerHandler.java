@@ -8,8 +8,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpRequest;
 import status.StatisticCounter;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Created by yuliya.shevchuk on 03.08.2015.
  */
@@ -18,10 +16,10 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
 
     private Command command;
-    private StatisticCounter statisticCounter;
+    private StatisticCounter statisticCollector;
 
-    public ServerHandler(StatisticCounter statisticCounter) {
-        this.statisticCounter = statisticCounter;
+    public ServerHandler(StatisticCounter statisticCollector) {
+        this.statisticCollector = statisticCollector;
     }
 
     @Override
@@ -37,7 +35,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
             command = CommandHelper.getInstance().getCommand(Config.getInstance().getProperty(req.getUri()));
-            command.execute(ctx, req, statisticCounter);
+            command.execute(ctx, req, statisticCollector);
         }
     }
 
@@ -50,12 +48,12 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        statisticCounter.setActiveConnections(new AtomicLong(statisticCounter.getActiveConnections().incrementAndGet()));
+        statisticCollector.setActiveConnections(statisticCollector.getActiveConnections() + 1);
 
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        statisticCounter.setActiveConnections(new AtomicLong(statisticCounter.getActiveConnections().decrementAndGet()));
+        statisticCollector.setActiveConnections(statisticCollector.getActiveConnections() + 1);
     }
 }

@@ -8,8 +8,6 @@ import status.StatisticCounter;
 
 import java.net.InetSocketAddress;
 import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
@@ -28,7 +26,7 @@ public abstract class Command {
 
     public abstract void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter);
 
-    protected void checkStatus(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
+    protected synchronized void checkStatus(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
 
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
@@ -40,7 +38,7 @@ public abstract class Command {
                     .getObject(DEFAULT))) {
 
 
-                statisticCounter.setQuantityRequest(new AtomicLong(statisticCounter.getQuantityRequest().incrementAndGet()));
+                statisticCounter.setQuantityRequest(statisticCounter.getQuantityRequest() + 1);
                 statisticCounter.updateStatusList(ctx, ip, uri);
                 statisticCounter.updateIpList(ip);
                 statisticCounter.updateUniqueIpSet(ip);
@@ -49,7 +47,7 @@ public abstract class Command {
         }
     }
 
-    protected void sendResponse(ChannelHandlerContext ctx, Object msg, FullHttpResponse response,
+    protected synchronized void sendResponse(ChannelHandlerContext ctx, Object msg, FullHttpResponse response,
                                              StatisticCounter statisticCounter) {
 
         if (msg instanceof HttpRequest) {

@@ -23,7 +23,7 @@ public class CommandRedirect extends Command {
     private ResourceBundle resource = ResourceBundle.getBundle(FILENAME);
 
     @Override
-    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
+    public synchronized void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
 
         if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;

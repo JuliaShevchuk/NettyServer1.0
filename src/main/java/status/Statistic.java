@@ -3,8 +3,6 @@ package status;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Formatter;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 
 /**
@@ -14,72 +12,67 @@ public class Statistic {
 
     private String ip;
     private String uri;
-    private AtomicReference<Date> timestamp;
-    private AtomicLong sentBytes;
-    private AtomicLong receivedBytes;
-    private AtomicLong speed;
+    private Date timestamp;
+    private long sentBytes;
+    private long receivedBytes;
+    private long speed;
 
 
     public Statistic() {
-        timestamp = new AtomicReference<>();
-        sentBytes = new AtomicLong();
-        receivedBytes = new AtomicLong();
-        speed = new AtomicLong();
-
     }
 
 
-    public String getIp() {
+    public synchronized String getIp() {
         return ip;
     }
 
-    public void setIp(String ip) {
+    public synchronized void setIp(String ip) {
         this.ip = ip;
     }
 
-    public String getUrl() {
+    public synchronized String getUrl() {
         return uri;
     }
 
-    public void setUrl(String uri) {
+    public synchronized void setUrl(String uri) {
 
         this.uri = uri;
     }
 
-    public AtomicReference<Date> getTimestamp() {
+    public synchronized Date getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(AtomicReference<Date> timestamp) {
+    public synchronized void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 
-    public AtomicLong getSentBytes() {
+    public synchronized long getSentBytes() {
         return sentBytes;
     }
 
-    public void setSentBytes(AtomicLong sentBytes) {
+    public synchronized void setSentBytes(long sentBytes) {
         this.sentBytes = sentBytes;
     }
 
-    public AtomicLong getReceivedBytes() {
+    public synchronized long getReceivedBytes() {
         return receivedBytes;
     }
 
-    public void setReceivedBytes(AtomicLong receivedBytes) {
+    public synchronized void setReceivedBytes(long receivedBytes) {
         this.receivedBytes = receivedBytes;
     }
 
-    public AtomicLong getSpeed() {
+    public synchronized long getSpeed() {
         return speed;
     }
 
-    public void setSpeed(AtomicLong speed) {
+    public synchronized void setSpeed(long speed) {
         this.speed = speed;
     }
 
     @Override
-    public boolean equals(Object o) {
+    public synchronized boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Statistic)) return false;
 
@@ -95,11 +88,19 @@ public class Statistic {
     }
 
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         return 17 * ip.hashCode()
                 + 31 * uri.hashCode()
                 + 63 * timestamp.hashCode()
-                + (int) (sentBytes.get() + receivedBytes.get() + speed.get());
+                + (int) (sentBytes + receivedBytes + speed);
     }
 
+    @Override
+    public synchronized String toString() {
+
+        return new Formatter().format("%-18s%-40s%-25s%-20d%-20d%-20d%n", ip, uri,
+                new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(timestamp),
+                sentBytes, receivedBytes, speed).toString();
+
+    }
 }
