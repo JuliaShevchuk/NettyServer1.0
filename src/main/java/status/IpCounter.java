@@ -3,38 +3,45 @@ package status;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Formatter;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by yuliya.shevchuk on 07.08.2015.
  */
 public class IpCounter {
 
-    private long quantity;
-    private Date date;
+    private AtomicLong quantity;
+    private AtomicReference<Date> date;
     private String ip;
 
     public IpCounter() {
+
+        quantity = new AtomicLong();
+        date = new AtomicReference<>();
+
     }
 
-    public IpCounter(String ip, long quantity, Date date) {
+    public IpCounter(String ip, AtomicLong quantity, AtomicReference<Date> date) {
+        this();
         this.ip = ip;
         this.quantity = quantity;
         this.date = date;
     }
 
-    public synchronized long getQuantity() {
+    public AtomicLong getQuantity() {
         return quantity;
     }
 
-    public synchronized void setQuantity(long quantity) {
+    public void setQuantity(AtomicLong quantity) {
         this.quantity = quantity;
     }
 
-    public synchronized Date getDate() {
+    public AtomicReference<Date> getDate() {
         return date;
     }
 
-    public synchronized void setDate(Date date) {
+    public void setDate(AtomicReference<Date> date) {
         this.date = date;
     }
 
@@ -47,7 +54,7 @@ public class IpCounter {
     }
 
     @Override
-    public synchronized boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof IpCounter)) return false;
 
@@ -57,15 +64,10 @@ public class IpCounter {
     }
 
     @Override
-    public synchronized int hashCode() {
-        return 31 * (int) quantity + date.hashCode();
+    public int hashCode() {
+        return 31 * (int) quantity.get() + date.hashCode();
 
     }
 
-    @Override
-    public synchronized String toString() {
-        return new Formatter().format("%-18s%-15s%-25s%n", ip, quantity,
-                new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(date)).toString();
-    }
 
 }

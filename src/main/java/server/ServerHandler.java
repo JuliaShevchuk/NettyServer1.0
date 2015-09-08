@@ -8,6 +8,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpRequest;
 import status.StatisticCounter;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * Created by yuliya.shevchuk on 03.08.2015.
  */
@@ -48,12 +50,12 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        statisticCounter.setActiveConnections(statisticCounter.getActiveConnections() + 1);
+        statisticCounter.setActiveConnections(new AtomicLong(statisticCounter.getActiveConnections().incrementAndGet()));
 
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        statisticCounter.setActiveConnections(statisticCounter.getActiveConnections() - 1);
+        statisticCounter.setActiveConnections(new AtomicLong(statisticCounter.getActiveConnections().decrementAndGet()));
     }
 }

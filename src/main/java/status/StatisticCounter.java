@@ -7,6 +7,9 @@ import io.netty.handler.traffic.TrafficCounter;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 /**
@@ -17,19 +20,21 @@ import java.util.concurrent.*;
 public class StatisticCounter {
 
 
-    private int quantityRequest;
-    private long activeConnections;
+    private AtomicLong quantityRequest;
+    private AtomicLong activeConnections;
 
     private List<IpCounter> ipList;
     private ConcurrentMap<String, Integer> urlMap;
     private BlockingQueue<Statistic> statusQueue;
     private Set<String> uniqueIpSet;
 
-
     public static final String TRAFFIC_COUNTER = "trafficCounter";
 
 
     public StatisticCounter() {
+
+        quantityRequest = new AtomicLong();
+        activeConnections = new AtomicLong();
 
         urlMap = new ConcurrentSkipListMap();
         ipList = new CopyOnWriteArrayList();
@@ -45,13 +50,13 @@ public class StatisticCounter {
 
             for (IpCounter ipCounter : ipList) {
                 if (ipCounter.getIp().equals(ip)) {
-                    ipCounter.setDate(new Date());
-                    ipCounter.setQuantity(ipCounter.getQuantity() + 1);
+                    ipCounter.setDate(new AtomicReference<>(new Date()));
+                    ipCounter.setQuantity(new AtomicLong(ipCounter.getQuantity().incrementAndGet()));
                     return;
                 }
             }
         }
-        ipList.add(new IpCounter(ip, 1, new Date()));
+        ipList.add(new IpCounter(ip, new AtomicLong(1), new AtomicReference<>(new Date())));
     }
 
     public synchronized void updateUrlMap(String uri) {
@@ -64,7 +69,7 @@ public class StatisticCounter {
 
     }
 
-    public synchronized void updateUniqueIpSet(String ip) {
+    public void updateUniqueIpSet(String ip) {
         uniqueIpSet.add(ip);
 
     }
@@ -80,38 +85,38 @@ public class StatisticCounter {
         Statistic status = new Statistic();
         status.setIp(ip);
         status.setUrl(url);
-        status.setTimestamp((new Date()));
+        status.setTimestamp(new AtomicReference<>(new Date()));
 
-        status.setSentBytes(counter.cumulativeWrittenBytes());
-        status.setReceivedBytes(counter.cumulativeReadBytes());
-        status.setSpeed((counter.lastReadThroughput()));
+        status.setSentBytes(new AtomicLong(counter.cumulativeWrittenBytes()));
+        status.setReceivedBytes(new AtomicLong(counter.cumulativeReadBytes()));
+        status.setSpeed(new AtomicLong(counter.lastReadThroughput()));
 
         statusQueue.add(status);
 
     }
 
 
-    public synchronized int getQuantityRequest() {
+    public AtomicLong getQuantityRequest() {
         return quantityRequest;
     }
 
-    public synchronized void setQuantityRequest(int quantityRequest) {
+    public void setQuantityRequest(AtomicLong quantityRequest) {
         this.quantityRequest = quantityRequest;
     }
 
-    public synchronized Set<String> getUniqueIpSet() {
+    public Set<String> getUniqueIpSet() {
         return uniqueIpSet;
     }
 
-    public synchronized void setUniqueIpSet(Set<String> uniqueIpSet) {
+    public void setUniqueIpSet(Set<String> uniqueIpSet) {
         this.uniqueIpSet = uniqueIpSet;
     }
 
-    public synchronized long getActiveConnections() {
+    public AtomicLong getActiveConnections() {
         return activeConnections;
     }
 
-    public synchronized void setActiveConnections(long activeConnections) {
+    public void setActiveConnections(AtomicLong activeConnections) {
         this.activeConnections = activeConnections;
     }
 

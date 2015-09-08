@@ -8,8 +8,10 @@ import io.netty.util.CharsetUtil;
 import status.IpCounter;
 import status.Statistic;
 import status.StatisticCounter;
+
 import java.util.Formatter;
 import java.util.Map;
+
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -20,14 +22,15 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class CommandStatus extends Command {
 
     @Override
-    public synchronized void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
+    public void execute(ChannelHandlerContext ctx, Object msg, StatisticCounter statisticCounter) {
 
         checkStatus(ctx, msg, statisticCounter);
 
-        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.unreleasableBuffer(Unpooled.copiedBuffer(
-                createOutput(statisticCounter), CharsetUtil.UTF_8)));
+        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK,
+                Unpooled.unreleasableBuffer(Unpooled.copiedBuffer(
+                        createOutput(statisticCounter), CharsetUtil.UTF_8)));
 
-        response.headers().set(CONTENT_TYPE, "text/plain");
+        response.headers().set(CONTENT_TYPE, "text/html");
         response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
 
         sendResponse(ctx, msg, response, statisticCounter);
@@ -35,32 +38,101 @@ public class CommandStatus extends Command {
 
     }
 
-    private synchronized String createOutput(StatisticCounter statisticCounter) {
-        StringBuffer stringBuf = new StringBuffer();
-        stringBuf.append("\n\n" + new Formatter().format("%60s%n", "STATUS PAGE\n"));
-        stringBuf.append("Total amount of requests: " + statisticCounter.getQuantityRequest());
-        stringBuf.append("\nUnique requests: " + statisticCounter.getUniqueIpSet().size());
-        stringBuf.append("\nActive connection: " + statisticCounter.getActiveConnections() + "\n\n\n");
 
-        stringBuf.append(new Formatter().format("%60s%n%-18s%-15s%-25s%n", "IP STATISTIC", "IP", "Requests", "Time"));
+    private String createOutput(StatisticCounter statisticCounter) {
+        StringBuffer buf = new StringBuffer()
+                .append("<!DOCTYPE html>")
+                .append("<html>")
+
+
+                .append("<style>" +
+                        "h3{" +
+                        "font-family: Arial, fantasy;" +
+                        "color: green;" +
+                        "text-align: center;}")
+
+                .append("h4{" +
+                        "font-family: Arial, fantasy;" +
+                        "color: green;}")
+
+                .append("table, td, tr {" +
+                        "border: 1px solid black;" +
+                        "background-color: darkseagreen;}")
+
+                .append("body, tbody, tr, th{" +
+                        "background-color:lightcyan}" +
+                        "</style>")
+
+
+                .append("<head>")
+                .append("<title>Status</title>")
+                .append("</head><body>")
+
+                .append("<h3>STATUS PAGE</h3>")
+
+                .append("Total amount of requests: " + statisticCounter.getQuantityRequest() + "</br>")
+                .append("Unique requests: " + statisticCounter.getUniqueIpSet().size() + "</br>")
+                .append("Active connection: " + statisticCounter.getActiveConnections() + "</br>")
+                .append("<h4>IP STATISTIC</h4>")
+
+                .append("<table>")
+                .append("<tr>" +
+                        "<td>IP</td>" +
+                        "<td>REQUESTS</td>" +
+                        "<td>TIME</td>" +
+                        "</tr><tbody>");
+
 
         for (IpCounter ipCounter : statisticCounter.getIpList()) {
-            stringBuf.append(ipCounter.toString()+"\n");
+            buf.append("<tr>" +
+                    "<th>" + ipCounter.getIp() + "</th>" +
+                    "<th>" + ipCounter.getQuantity() + "</th>" +
+                    "<th>" + ipCounter.getDate() + "</th>" +
+                    "</tr>");
         }
+        buf.append("</tbody></table>");
 
-        stringBuf.append("\n" + new Formatter().format("%60s%n%-40s%-25s%n", "REDIRECTS\n", "URI", "Redirects").toString());
+
+        buf.append("<h4>REDIRECTS</h4>")
+                .append("<table/>")
+                .append("<tr>" +
+                        "<td>URI</td>" +
+                        "<td>Redirects</td>" +
+                        "</tr><tbody>");
 
         for (Map.Entry<String, Integer> entry : statisticCounter.getUrlMap().entrySet()) {
-            stringBuf.append(new Formatter().format("%-40s%-2s%n", entry.getKey(), entry.getValue()));
+            buf.append("<tr>" +
+                    "<th>" + entry.getKey() + "</th>" +
+                    "<th>" + entry.getValue() + "</th>" +
+                    "</tr>");
         }
+        buf.append("</tbody></table>");
 
-
-        stringBuf.append("\n\n\n" + new Formatter().format("%60s%n%-18s%-40s%-25s%-20s%-20s%-20s%n",
-                        "LAST CONNECTIONS\n", "IP", "URI", "TIMESTAMP", "SENT_BYTES", "RECEIVED_BYTES", "SPEED"));
+        buf.append("<h4>LAST CONNECTIONS</h4>")
+                .append("<table>")
+                .append("<tr>" +
+                        "<td>IP</td>" +
+                        "<td>URI</td>" +
+                        "<td>TIMESTAMP</td>" +
+                        "<td>SENT_BYTES</td>" +
+                        "<td>RECEIVED_BYTES</td>" +
+                        "<td>SPEED</td>" +
+                        "</tr><tbody>");
 
         for (Statistic val : statisticCounter.getStatusQueue()) {
-            stringBuf.append(val.toString());
+            buf.append("<tr>" +
+                    "<th>" + val.getIp() + "</th>" +
+                    "<th>" + val.getUrl() + "</th>" +
+                    "<th>" + val.getTimestamp() + "</th>" +
+                    "<th>" + val.getSentBytes() + "</th>" +
+                    "<th>" + val.getReceivedBytes() + "</th>" +
+                    "<th>" + val.getSpeed() + "</th>" +
+                    "</tr>");
         }
-        return stringBuf.toString();
+        buf.append("</tbody></table>");
+
+        buf.append("</body></html>");
+
+        return buf.toString();
     }
 }
