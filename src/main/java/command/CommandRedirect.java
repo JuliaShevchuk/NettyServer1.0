@@ -45,7 +45,7 @@ public class CommandRedirect extends Command {
 
             statisticCounter.updateUrlMap(uri);
 
-            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.FOUND);
+            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.FOUND);//302 -FOUND
             response.headers().set(HttpHeaders.Names.LOCATION, uri);
 
             sendResponse(ctx, msg, response, statisticCounter);

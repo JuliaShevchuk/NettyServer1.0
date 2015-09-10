@@ -85,9 +85,9 @@ public class Statistic {
 
         Statistic request = (Statistic) o;
 
-        return receivedBytes == request.receivedBytes
-                && sentBytes == request.sentBytes
-                && speed == request.speed
+        return receivedBytes.equals(request.receivedBytes)
+                && sentBytes.equals(request.sentBytes)
+                && speed.equals(request.speed)
                 && ip.equals(request.ip)
                 && timestamp.equals(request.timestamp)
                 && uri.equals(request.uri);

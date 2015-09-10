@@ -7,7 +7,6 @@ import io.netty.handler.traffic.TrafficCounter;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -25,7 +24,7 @@ public class StatisticCounter {
 
     private List<IpCounter> ipList;
     private ConcurrentMap<String, Integer> urlMap;
-    private BlockingQueue<Statistic> statusQueue;
+    private Queue<Statistic> statusQueue;
     private Set<String> uniqueIpSet;
 
     public static final String TRAFFIC_COUNTER = "trafficCounter";
@@ -38,9 +37,8 @@ public class StatisticCounter {
 
         urlMap = new ConcurrentSkipListMap();
         ipList = new CopyOnWriteArrayList();
-        uniqueIpSet = new ConcurrentSkipListSet<>();
-        statusQueue = new ArrayBlockingQueue<>(16);
-
+        uniqueIpSet = new ConcurrentSkipListSet();
+        statusQueue = new ConcurrentLinkedQueue();
 
     }
 
@@ -136,7 +134,7 @@ public class StatisticCounter {
         this.ipList = ipList;
     }
 
-    public BlockingQueue<Statistic> getStatusQueue() {
+    public Queue<Statistic> getStatusQueue() {
         return statusQueue;
     }
 

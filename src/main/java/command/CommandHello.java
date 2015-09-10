@@ -4,7 +4,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.CharsetUtil;
 import status.StatisticCounter;
@@ -35,7 +34,7 @@ public class CommandHello extends Command {
             public void run() {
 
                 FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK,
-                        Unpooled.unreleasableBuffer(Unpooled.copiedBuffer(MESSAGE, CharsetUtil.UTF_8)));
+                        Unpooled.copiedBuffer(MESSAGE, CharsetUtil.UTF_8));
 
                 response.headers().set(CONTENT_TYPE, "text/plain");
                 response.headers().set(CONTENT_LENGTH, response.content().readableBytes());

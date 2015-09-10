@@ -8,7 +8,7 @@ import status.StatisticCounter;
 
 import java.net.InetSocketAddress;
 import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicInteger;
+
 import java.util.concurrent.atomic.AtomicLong;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;

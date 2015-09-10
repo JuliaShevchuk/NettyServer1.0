@@ -25,7 +25,7 @@ public class CommandMissing extends Command {
 
 
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK,
-                Unpooled.unreleasableBuffer(Unpooled.copiedBuffer (MESSAGE, CharsetUtil.UTF_8)));
+                Unpooled.copiedBuffer (MESSAGE, CharsetUtil.UTF_8));
         response.headers().set(CONTENT_TYPE, "text/plain");
         response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
 

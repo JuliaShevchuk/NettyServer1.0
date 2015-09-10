@@ -9,7 +9,6 @@ import status.IpCounter;
 import status.Statistic;
 import status.StatisticCounter;
 
-import java.util.Formatter;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
@@ -27,8 +26,7 @@ public class CommandStatus extends Command {
         checkStatus(ctx, msg, statisticCounter);
 
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK,
-                Unpooled.unreleasableBuffer(Unpooled.copiedBuffer(
-                        createOutput(statisticCounter), CharsetUtil.UTF_8)));
+                Unpooled.copiedBuffer(createOutput(statisticCounter), CharsetUtil.UTF_8));
 
         response.headers().set(CONTENT_TYPE, "text/html");
         response.headers().set(CONTENT_LENGTH, response.content().readableBytes());

@@ -60,7 +60,7 @@ public class IpCounter {
 
         IpCounter ipCounter = (IpCounter) o;
 
-        return quantity == ipCounter.quantity && date.equals(ipCounter.date);
+        return quantity.equals(ipCounter.quantity) && date.equals(ipCounter.date);
     }
 
     @Override
